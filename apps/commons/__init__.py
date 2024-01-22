@@ -5,8 +5,8 @@ from fastapi import APIRouter, UploadFile
 from fastapi.params import Form, File, Depends
 from sqlalchemy.orm import Session
 
+import models
 from middleware import get_db
-from models import models
 
 router = APIRouter()
 
@@ -14,10 +14,10 @@ router = APIRouter()
 # 图片上传/保存
 @router.post("/api/upLoadImage", summary="图片上传/保存")
 async def upload_image(
-    token: str = Form(),
-    meeting: int = Form(),
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+        token: str = Form(),
+        meeting: int = Form(),
+        file: UploadFile = File(...),
+        db: Session = Depends(get_db),
 ):
     try:
         # 如果meeting字段为1  则保存为会议室图片

@@ -1,7 +1,7 @@
 import requests
 from fastapi import APIRouter, Request
 
-from models import models
+import models
 from utils import generate_token
 
 router = APIRouter()
