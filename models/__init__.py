@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from sqlalchemy import Column, Integer, String
 from starlette.requests import Request
 
-import models
 from database import Base
 
 router = APIRouter()
