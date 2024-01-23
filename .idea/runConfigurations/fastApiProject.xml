@@ -5,7 +5,7 @@
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
-    <option name="SDK_HOME" value="/opt/homebrew/anaconda3/envs/fastApiProject/bin/python" />
+    <option name="SDK_HOME" value="D:\Anaconda\envs\fastApiProject\python.exe" />
     <option name="SDK_NAME" value="fastApiProject" />
     <option name="WORKING_DIRECTORY" value="" />
     <option name="IS_MODULE_SDK" value="false" />

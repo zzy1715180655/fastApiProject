@@ -28,6 +28,9 @@ class MeetingRoom(BaseModel):
     # 会议室图片
     avatar_url: str
 
+    class Config:
+        orm_mode = True
+
 
 class MeetingRoomList(BaseModel):
     meeting_room_list: List[MeetingRoom]

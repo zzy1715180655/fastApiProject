@@ -1,6 +1,48 @@
+from fastapi import APIRouter
 from sqlalchemy import Column, Integer, String
+from starlette.requests import Request
 
+import models
 from database import Base
+
+router = APIRouter()
+
+
+# 分页结构体
+class Pagination:
+    def __init__(self, page: int, page_size: int):
+        self.page = page
+        self.page_size = page_size
+
+
+# 查询某个会议室的所有现存预约
+@router.get("/api/getMeetingRoomOrderList")
+async def get_meeting_room_order_list(
+        request: Request,
+        meeting_room_id: int,
+        page: int = 1,
+        page_size: int = 10,
+):
+    db = request.state.db
+    # 获取预约总数
+    booking_count = db.query(models.Booking).count()
+    # 获取预约列表
+    booking_list = (
+        db.query(models.Booking)
+        .filter_by(meeting_room_id=meeting_room_id)
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+        .all()
+    )
+    # 分页结构体
+    # 返回数据
+    return {
+        "code": 200,
+        "data": {
+            "booking_list": booking_list,
+            "booking_count": booking_count,
+        },
+    }
 
 
 class User(Base):
@@ -36,7 +78,7 @@ class MeetingRoom(Base):
     # 会议室容量
     capacity = Column(Integer, default=0)
     # 会议室图片
-    image = Column(String(200), default="")
+    avatar_url = Column(String(200), default="")
     # 会议室状态 0:空闲 1:预约中 2:使用中
     status = Column(Integer, default=0)
     # 是否删除 0:未删除 1:已删除
@@ -66,10 +108,3 @@ class Booking(Base):
     approval_id = Column(Integer, default=0)
     # 是否删除 0:未删除 1:已删除
     is_delete = Column(Integer, default=0)
-
-
-# 分页结构体
-class Pagination:
-    def __init__(self, page: int, page_size: int):
-        self.page = page
-        self.page_size = page_size
