@@ -1,10 +1,10 @@
 # 预约
 from fastapi import Body, APIRouter
+from pydantic import BaseModel
 from starlette.requests import Request
 
 import models
 import schemas
-from main import UpdateBookingStatusItem
 
 router = APIRouter()
 
@@ -52,6 +52,23 @@ async def toBooking(request: Request, booking: schemas.Booking = Body(...)):
         return {"code": 201, "message": e.args}
 
 
+class BookingStatus(BaseModel):
+    # 审核人id
+    approval_id: int | None
+    # 审核时间
+    approval_time: str | None
+
+
+# 修改预约状态的pydantic模型
+class UpdateBookingStatusItem(BaseModel):
+    # 预约id
+    booking_id: int
+    # 预约状态 0:未审核 1:审核通过 2:审核不通过
+    booking_status: int
+    # 审核
+    booking_approval: BookingStatus | None
+
+
 # 更新预约状态
 @router.post("/api/updateBookingStatus")
 async def update_booking_status(
@@ -59,15 +76,9 @@ async def update_booking_status(
         update_book_status_item: UpdateBookingStatusItem
 ):
     db = request.state.db
-    # 查询用户信息
-    db_user = (
-        db.query(models.User).filter_by(token=update_book_status_item.token).first()
-    )
-    # 判断用户是否存在
-    if db_user is None:
-        return {"code": 201, "message": "您已退出登录"}
+    user = request.state.user
     # 判断是否是超级管理员
-    if db_user.is_super == 0:
+    if user.role == 0:
         return {"code": 201, "message": "您不是超级管理员"}
     # 查询预约信息
     db_booking = (
@@ -75,16 +86,8 @@ async def update_booking_status(
         .filter_by(id=update_book_status_item.booking_id)
         .first()
     )
-    # 判断预约信息是否存在
-    if db_booking is None:
-        return {"code": 201, "message": "预约信息不存在"}
-    # 判断预约信息是否属于该用户
-    if db_booking.booking_user_id != db_user.id:
-        return {"code": 201, "message": "预约信息不属于该用户"}
     # 更新预约状态
     db_booking.booking_status = update_book_status_item.booking_status
-    # 更新审批人id
-    db_booking.approval_id = db_user.id
     try:
         db.commit()
         db.refresh(db_booking)
@@ -121,5 +124,35 @@ async def get_booking_message_list(
         "data": {
             "booking_message_list": {"booking_room_name": booking_message_list},
             "booking_message_count": booking_message_count,
+        },
+    }
+
+
+# 查询某个会议室的所有现存预约
+@router.get("/api/getMeetingRoomOrderList")
+async def get_meeting_room_order_list(
+        request: Request,
+        meeting_room_id: int,
+        page: int = 1,
+        page_size: int = 10,
+):
+    db = request.state.db
+    # 获取预约总数
+    booking_count = db.query(models.Booking).count()
+    # 获取预约列表
+    booking_list = (
+        db.query(models.Booking)
+        .filter_by(meeting_room_id=meeting_room_id)
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+        .all()
+    )
+    # 分页结构体
+    # 返回数据
+    return {
+        "code": 200,
+        "data": {
+            "booking_list": booking_list,
+            "booking_count": booking_count,
         },
     }

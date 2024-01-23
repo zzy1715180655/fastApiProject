@@ -1,9 +1,8 @@
 # 会议室列表
 from typing import List
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, Request
 from pydantic import BaseModel
-from starlette.requests import Request
 
 import models
 import schemas
@@ -82,7 +81,6 @@ async def add_meeting_room(
     db_meeting_room = models.MeetingRoom(
         name=meeting_room.name,
         capacity=meeting_room.capacity,
-        avatar_url=meeting_room.avatar_url,
         status=0
     )
     try:
@@ -97,8 +95,8 @@ async def add_meeting_room(
 
 
 # 根据日期查询会议室已经预约的时间段
-@router.get("/api/getMeetingRoomOrderByDate")
-async def get_meeting_room_order_by_date(
+@router.get("/getBookedTimeByDate", summary="根据日期查询会议室已经预约的时间段")
+async def get_booked_time_by_date(
         meeting_room_id: int,
         order_date: str,
         request: Request,

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="fastApiProject" type="Python.FastAPI" singleton="false">
-    <option name="file" value="$PROJECT_DIR$/main.py" />
+    <option name="file" value="C:\Users\Lenovo\PycharmProjects\fastApiProject\main.py" />
     <module name="fastApiProject" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
