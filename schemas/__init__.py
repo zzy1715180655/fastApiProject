@@ -25,8 +25,6 @@ class MeetingRoom(BaseModel):
     name: str
     # 会议室容量
     capacity: int
-    # 会议室图片
-    avatar_url: str
 
     class Config:
         orm_mode = True
@@ -40,14 +38,10 @@ class MeetingRoomList(BaseModel):
 # 预约
 class Booking(BaseModel):
     meeting_room_id: int
-    booking_user_id: int
     booking_remark: str
     booking_date: str
     booking_start_time: str
     booking_end_time: str
-    booking_status: int = 0
-    approval_id: int | None
-    token: str
 
 
 # 图片上传

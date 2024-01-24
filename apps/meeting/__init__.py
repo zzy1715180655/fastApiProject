@@ -1,8 +1,6 @@
 # 会议室列表
-from typing import List
 
 from fastapi import APIRouter, Header, Request
-from pydantic import BaseModel
 
 import models
 import schemas
@@ -11,33 +9,15 @@ import schemas
 router = APIRouter()
 
 
-class MeetingRoomModel(BaseModel):
-    # 会议室名称
-    name: str
-    # 会议室容量
-    capacity: int
-    # 会议室图片
-    avatar_url: str
-
-    class Config:
-        orm_mode = True
-
-
-class MeetingRoomListModel(BaseModel):
-    meeting_room_list: List[schemas.MeetingRoom]
-    meeting_room_count: int
-
-
 # 获取会议室列表
 @router.get(
     "/getMeetingRoomList",
     summary="获取会议室列表",
-    response_model=None
 )
 async def get_meeting_room_list(
         request: Request,
-        page: int = 1,
-        page_size: int = 10,
+        page: int | None,
+        page_size: int | None,
         token: str = Header(None, description="用户token"),
 ):
     db = request.state.db
@@ -52,7 +32,7 @@ async def get_meeting_room_list(
     meeting_room_count = db.query(models.MeetingRoom).count()
     # 返回数据
     return {
-        "meeting_room_list": [MeetingRoomModel.from_orm(room) for room in meeting_room_list],
+        "meeting_room_list": meeting_room_list,
         "meeting_room_count": meeting_room_count,
     }
 
@@ -92,6 +72,40 @@ async def add_meeting_room(
         db.rollback()
         return {"code": 201, "message": e.args}
     return {"code": 200, "message": "新增成功"}
+
+
+# 修改会议室
+@router.put(
+    "/updateMeetingRoom",
+    summary="修改会议室",
+    response_model=None
+)
+async def update_meeting_room(
+        request: Request,
+        meeting_room_id: int,
+        meeting_room: schemas.MeetingRoom,
+        token: str = Header(None, description="用户token"),
+):
+    db = request.state.db
+    # 判断会议室是否存在
+    db_meeting_room = (
+        db.query(models.MeetingRoom)
+        .filter_by(id=meeting_room_id)
+        .first()
+    )
+    if db_meeting_room is None:
+        return {"code": 201, "message": "会议室不存在"}
+    # 修改会议室信息
+    db_meeting_room.name = meeting_room.name
+    db_meeting_room.capacity = meeting_room.capacity
+    try:
+        db.commit()
+        db.refresh(db_meeting_room)
+    except Exception as e:
+        print(e)
+        db.rollback()
+        return {"code": 201, "message": e.args}
+    return {"code": 200, "message": "修改成功"}
 
 
 # 根据日期查询会议室已经预约的时间段

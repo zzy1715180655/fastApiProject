@@ -42,7 +42,7 @@ async def login(code: str, request: Request):
 
 
 # 根据token获取用户信息
-@router.get("/api/getUserInfoByToken", summary="根据token获取用户信息")
+@router.get("/getUserInfoByToken", summary="根据token获取用户信息")
 async def get_user_info_by_token(request: Request, token: str = Header()):
     user = request.state.user
     if user:
@@ -57,10 +57,11 @@ class UpdateUserInfoItem(BaseModel):
 
 
 # 根据传参进行个人信息修改,姓名,公司,头像
-@router.post("/api/updateUserInfo", summary="根据传参进行个人信息修改,姓名,公司,头像")
+@router.post("/updateUserInfo", summary="根据传参进行个人信息修改,姓名,公司,头像")
 async def update_user_info(
         update_user_info_item: UpdateUserInfoItem,
         request: Request,
+        token: str = Header(),
 ):
     db = request.state.db
     user = request.state.user
@@ -69,7 +70,11 @@ async def update_user_info(
     try:
         db.commit()
         db.refresh(user)
-        return {"code": 200, "message": user}
+        return {"code": 200, "data": {
+            "name": user.name,
+            "mobile": user.mobile,
+            "company": user.company,
+        }}
     except Exception as e:
         print(e)
         db.rollback()
